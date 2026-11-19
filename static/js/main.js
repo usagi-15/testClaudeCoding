@@ -1,110 +1,96 @@
-// ヒーロー部分のインタラクティブな光の粒子。
-// ポインター（マウス・指）に粒子が引き寄せられ、クリック/タップで波紋が広がります。
+// ファーストビューのジャケット枠に「滲む、響く。」の演出を描く。
+// ・色の玉がゆっくり漂いながら重なり合い、にじむ（滲む）
+// ・タップ/クリックすると波紋が広がり、色が揺れる（響く）
+// メインビジュアル画像が設定されている場合、canvas は出力されないので何もしない。
 (() => {
-  const canvas = document.getElementById("hero-canvas");
+  const canvas = document.getElementById("bleed-canvas");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  let width = 0, height = 0, dpr = 1;
-  let particles = [];
-  const pointer = { x: -9999, y: -9999, active: false };
+  const COLORS = [
+    [232, 183, 160], // 暖かい桃色
+    [159, 183, 224], // 青
+    [214, 196, 132], // 黄土
+    [150, 190, 175], // 青緑
+    [186, 150, 205], // 藤色
+  ];
+
+  let size = 0;
+  let blobs = [];
   const ripples = [];
+  let t = 0;
 
   function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    width = canvas.clientWidth;
-    height = canvas.clientHeight;
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    size = canvas.clientWidth;
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const count = Math.round(Math.min(220, (width * height) / 6000));
-    particles = Array.from({ length: count }, () => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      r: Math.random() * 1.8 + 0.6,
-      hue: 190 + Math.random() * 90,
-    }));
+    if (!blobs.length) {
+      blobs = COLORS.map((c, i) => ({
+        c,
+        x: Math.random(), y: Math.random() * 0.8,
+        r: 0.35 + Math.random() * 0.25,
+        sx: 0.6 + Math.random() * 0.8, sy: 0.6 + Math.random() * 0.8,
+        phase: i * 1.7,
+        push: 0,
+      }));
+    }
+    draw();
   }
 
-  function setPointer(e) {
-    const rect = canvas.getBoundingClientRect();
-    pointer.x = e.clientX - rect.left;
-    pointer.y = e.clientY - rect.top;
-    pointer.active = true;
+  function draw() {
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = "#121216";
+    ctx.fillRect(0, 0, size, size);
+
+    ctx.globalCompositeOperation = "screen";
+    for (const b of blobs) {
+      const x = (b.x + Math.sin(t * 0.0003 * b.sx + b.phase) * 0.18) * size;
+      const y = (b.y + Math.cos(t * 0.00025 * b.sy + b.phase) * 0.18) * size;
+      const r = b.r * size * (1 + b.push * 0.25);
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      const [cr, cg, cb] = b.c;
+      g.addColorStop(0, `rgba(${cr},${cg},${cb},0.55)`);
+      g.addColorStop(0.5, `rgba(${cr},${cg},${cb},0.22)`);
+      g.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, size, size);
+      b.push *= 0.96;
+    }
+
+    // 波紋（響く）
+    ctx.globalCompositeOperation = "source-over";
+    for (const rp of ripples) {
+      for (let k = 0; k < 3; k++) {
+        const rr = rp.r - k * 18;
+        if (rr <= 0) continue;
+        ctx.strokeStyle = `rgba(236,235,230,${rp.life * (0.35 - k * 0.1)})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(rp.x, rp.y, rr, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
   }
 
-  canvas.addEventListener("pointermove", setPointer);
+  function loop(now) {
+    t = now;
+    for (const rp of ripples) { rp.r += size * 0.006; rp.life -= 0.008; }
+    while (ripples.length && ripples[0].life <= 0) ripples.shift();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
   canvas.addEventListener("pointerdown", (e) => {
-    setPointer(e);
-    ripples.push({ x: pointer.x, y: pointer.y, r: 0, life: 1 });
+    const rect = canvas.getBoundingClientRect();
+    ripples.push({ x: e.clientX - rect.left, y: e.clientY - rect.top, r: 0, life: 1 });
+    for (const b of blobs) b.push = 1;
+    if (reduceMotion) draw();
   });
-  canvas.addEventListener("pointerleave", () => { pointer.active = false; });
   window.addEventListener("resize", resize);
 
-  function step() {
-    ctx.fillStyle = "rgba(7, 7, 13, 0.25)";
-    ctx.fillRect(0, 0, width, height);
-
-    for (const rp of ripples) {
-      rp.r += 6;
-      rp.life -= 0.015;
-    }
-    while (ripples.length && ripples[0].life <= 0) ripples.shift();
-
-    for (const p of particles) {
-      if (pointer.active) {
-        const dx = pointer.x - p.x, dy = pointer.y - p.y;
-        const dist = Math.hypot(dx, dy) || 1;
-        if (dist < 220) {
-          const f = (1 - dist / 220) * 0.08;
-          p.vx += (dx / dist) * f;
-          p.vy += (dy / dist) * f;
-        }
-      }
-      for (const rp of ripples) {
-        const dx = p.x - rp.x, dy = p.y - rp.y;
-        const dist = Math.hypot(dx, dy) || 1;
-        if (Math.abs(dist - rp.r) < 30) {
-          p.vx += (dx / dist) * 1.2 * rp.life;
-          p.vy += (dy / dist) * 1.2 * rp.life;
-        }
-      }
-      p.vx *= 0.97;
-      p.vy *= 0.97;
-      p.x += p.vx;
-      p.y += p.vy;
-      if (p.x < 0) p.x += width; else if (p.x > width) p.x -= width;
-      if (p.y < 0) p.y += height; else if (p.y > height) p.y -= height;
-
-      const speed = Math.min(Math.hypot(p.vx, p.vy), 4);
-      ctx.beginPath();
-      ctx.fillStyle = `hsla(${p.hue}, 90%, ${60 + speed * 8}%, ${0.5 + speed * 0.12})`;
-      ctx.arc(p.x, p.y, p.r + speed * 0.6, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // 近い粒子同士を線で結ぶ
-    ctx.lineWidth = 0.5;
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const a = particles[i], b = particles[j];
-        const d = Math.hypot(a.x - b.x, a.y - b.y);
-        if (d < 70) {
-          ctx.strokeStyle = `rgba(127, 216, 255, ${(1 - d / 70) * 0.25})`;
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
-          ctx.stroke();
-        }
-      }
-    }
-
-    if (!reduceMotion) requestAnimationFrame(step);
-  }
-
   resize();
-  step();
+  if (!reduceMotion) requestAnimationFrame(loop);
 })();

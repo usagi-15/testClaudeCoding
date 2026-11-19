@@ -1,0 +1,20 @@
+{# 正方形の画像枠。image が空なら【要記入】のプレースホルダーを表示する #}
+{% macro square(image, alt, cls="") %}
+<div class="square {{ cls }}">
+  {% if image %}
+  <img src="{{ image }}" alt="{{ alt }}" loading="lazy" width="800" height="800">
+  {% else %}
+  <div class="square__placeholder" role="img" aria-label="画像準備中：{{ alt }}">
+    <span>{{ site.placeholder }}</span>
+  </div>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{# セクション見出し（曲目リスト風の番号つき） #}
+{% macro heading(no, en, ja, id) %}
+<header class="sec-head">
+  <span class="sec-head__no" aria-hidden="true">{{ no }}</span>
+  <h2 id="{{ id }}-title"><span class="sec-head__en" lang="en">{{ en }}</span><span class="sec-head__ja">{{ ja }}</span></h2>
+</header>
+{% endmacro %}
