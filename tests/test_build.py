@@ -63,3 +63,13 @@ def test_news_sorted_newest_first(tmp_path):
     path.write_text(src, encoding="utf-8")
     news = build.load_content(path)["news"]
     assert [n["text"] for n in news] == ["新しい", "古い"]
+
+
+def test_ogp_uses_absolute_url(tmp_path):
+    html = _build_with(tmp_path, {
+        'image = ""\nalt = "【要記入】メインビジュアルの説明"':
+        'image = "static/images/main.jpg"\nalt = "説明"',
+    })
+    url = build.load_content(build.DEFAULT_CONTENT)["site"]["url"]
+    assert f'<meta property="og:url" content="{url}">' in html
+    assert f'<meta property="og:image" content="{url}static/images/main.jpg">' in html

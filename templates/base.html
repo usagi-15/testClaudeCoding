@@ -9,8 +9,12 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="{{ site.page_title }}">
   <meta property="og:description" content="{{ site.description }}">
+  {% if site.url.startswith("http") %}
+  <meta property="og:url" content="{{ site.url }}">
+  <link rel="canonical" href="{{ site.url }}">
   {% if hero.image %}
-  <meta property="og:image" content="{{ hero.image }}">
+  <meta property="og:image" content="{{ site.url }}{{ hero.image }}">
+  {% endif %}
   {% endif %}
   <link rel="stylesheet" href="static/css/style.css">
 </head>

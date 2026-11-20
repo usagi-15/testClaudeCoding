@@ -13,7 +13,7 @@ subtitle = "音楽コンテンツにおけるオーディエンス・ジャー�
 page_title = "My Cover｜デザイン情報学科3年ゼミ展「滲む、響く。」"
 description = "架空のアーティストの楽曲を聴き、感じたイメージを言葉にすると、生成AIがあなただけのCDジャケットを描き出す参加型展示『My Cover』の紹介ページです。"
 lang = "ja"
-url = "【要記入】"   # 公開URL（OGP用）。確定後に書き換え
+url = "https://usagi-15.github.io/testClaudeCoding/"   # 公開URL（OGP用）。末尾は / で終える
 placeholder = "【要記入】"
 
 [hero]
