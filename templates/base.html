@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d0d10">
+  <title>{{ site.page_title }}</title>
+  <meta name="description" content="{{ site.description }}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{ site.page_title }}">
+  <meta property="og:description" content="{{ site.description }}">
+  {% if site.url.startswith("http") %}
+  <meta property="og:url" content="{{ site.url }}">
+  <link rel="canonical" href="{{ site.url }}">
+  {% if hero.image %}
+  <meta property="og:image" content="{{ site.url }}{{ hero.image }}">
+  {% endif %}
+  {% endif %}
+  <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+  <a class="skip" href="#about">本文へスキップ</a>
+  {% block body %}{% endblock %}
+  <script src="static/js/main.js"></script>
+</body>
+</html>

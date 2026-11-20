@@ -1,0 +1,53 @@
+# main ブランチに変更が入るたびに、サイトを生成して GitHub Pages に公開する。
+# 手動で公開したいときは Actions タブ →「Deploy site to GitHub Pages」→「Run workflow」。
+name: Deploy site to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 公開処理が重なったときは、実行中のものを途中で止めずに順番に処理する
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: 依存ライブラリのインストール
+        run: pip install -r requirements.txt pytest
+
+      - name: テスト
+        run: python -m pytest -q
+
+      - name: サイトの生成
+        run: python build.py
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

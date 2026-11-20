@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% from "_macros.html" import square, heading with context %}
+{% block body %}
+<header class="nav">
+  <a class="nav__logo" href="#top" lang="en">My Cover</a>
+  <nav aria-label="ページ内リンク">
+    <a href="#about">About</a>
+    <a href="#experience">Experience</a>
+    <a href="#research">Research</a>
+    <a href="#system">System</a>
+    <a href="#exhibition">Exhibition</a>
+    <a href="#credit">Credit</a>
+  </nav>
+</header>
+
+<section class="hero" id="top" aria-labelledby="hero-title">
+  <div class="hero__jacket">
+    {% if hero.image %}
+    <img class="hero__img" src="{{ hero.image }}" alt="{{ hero.alt }}" width="1200" height="1200">
+    {% else %}
+    <canvas id="bleed-canvas" aria-hidden="true"></canvas>
+    {% endif %}
+    <div class="hero__cover-text">
+      <p class="hero__label" lang="en">{{ exhibition.theme }}</p>
+      <h1 class="hero__title" id="hero-title" lang="en">{{ site.title }}</h1>
+    </div>
+  </div>
+  <div class="hero__meta">
+    <p class="hero__subtitle">{{ site.subtitle }}</p>
+    <dl class="hero__info">
+      <div><dt>会期</dt><dd>{{ exhibition.period }}</dd></div>
+      <div><dt>会場</dt><dd>{{ exhibition.venue }}</dd></div>
+    </dl>
+    {% if not hero.image %}
+    <p class="hero__hint">{{ hero.hint }}</p>
+    {% endif %}
+  </div>
+</section>
+
+<main>
+  {% if news %}
+  <section class="section section--news" aria-label="お知らせ">
+    <ul class="news">
+      {% for item in news %}
+      <li><span class="news__date">{{ item.date }}</span><span>{{ item.text }}</span></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section class="section" id="about" aria-labelledby="about-title">
+    {{ heading("01", "About", "作品について", "about") }}
+    <p class="lead">{{ about.lead }}</p>
+    {% for p in about.body %}
+    <p>{{ p }}</p>
+    {% endfor %}
+    <dl class="track">
+      <div><dt lang="en">Artist</dt><dd>{{ about.artist }}</dd></div>
+      <div><dt lang="en">Song</dt><dd>{{ about.song }}</dd></div>
+    </dl>
+    <h3 class="sub-title">タイトルに込めた意味</h3>
+    <ul class="meanings">
+      {% for m in about.meanings %}
+      <li class="meaning">
+        <p class="meaning__word"><span lang="en">{{ m.word }}</span> ＝ {{ m.reading }}</p>
+        <p>{{ m.text }}</p>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="section" id="covers" aria-labelledby="covers-title">
+    {{ heading("—", "Covers", "生まれたジャケット", "covers") }}
+    <p class="note">{{ covers.note }}</p>
+    <ul class="covers">
+      {% for c in covers["items"] %}
+      <li>
+        <figure>
+          {{ square(c.image, c.alt) }}
+          <figcaption>{{ c.caption }}</figcaption>
+        </figure>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="section" id="experience" aria-labelledby="experience-title">
+    {{ heading("02", "Experience", "体験の流れ", "experience") }}
+    <ol class="steps">
+      {% for s in steps %}
+      <li class="step">
+        <div class="step__no" aria-hidden="true">{{ "%02d"|format(loop.index) }}</div>
+        <div class="step__body">
+          <p class="step__en" lang="en">{{ s.en }}</p>
+          <h3 class="step__title">{{ s.title }}</h3>
+          <p>{{ s.text }}</p>
+          {% if s.get('note') %}<p class="step__note">{{ s.note }}</p>{% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  <section class="section" id="research" aria-labelledby="research-title">
+    {{ heading("03", "Research", "研究の問い", "research") }}
+    <blockquote class="question"><p>{{ research.question }}</p></blockquote>
+    {% for p in research.body %}
+    <p>{{ p }}</p>
+    {% endfor %}
+    <aside class="notice" aria-label="ご来場の皆さまへ">
+      <p class="notice__title">ご来場の皆さまへ</p>
+      <p>{{ research.notice }}</p>
+    </aside>
+  </section>
+
+  <section class="section" id="system" aria-labelledby="system-title">
+    {{ heading("04", "System", "仕組み", "system") }}
+    <ol class="flow" aria-label="生成の流れ">
+      {% for f in system.flow %}
+      <li>{{ f }}</li>
+      {% endfor %}
+    </ol>
+    <ul class="points">
+      {% for p in system.points %}
+      <li>{{ p }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="section" id="exhibition" aria-labelledby="exhibition-title">
+    {{ heading("05", "Exhibition", "展示情報", "exhibition") }}
+    <dl class="info">
+      <div><dt>展示名</dt><dd>{{ exhibition.name }}</dd></div>
+      <div><dt>テーマ</dt><dd>{{ exhibition.theme }}</dd></div>
+      <div><dt>会期</dt><dd>{{ exhibition.period }}</dd></div>
+      <div><dt>時間</dt><dd>{{ exhibition.hours }}</dd></div>
+      <div><dt>会場</dt><dd>{{ exhibition.venue }}</dd></div>
+      <div><dt>形式</dt><dd>{{ exhibition.format }}</dd></div>
+    </dl>
+    {% if exhibition.map_url %}
+    <a class="button" href="{{ exhibition.map_url }}" target="_blank" rel="noopener">地図を開く</a>
+    {% endif %}
+
+    <h3 class="sub-title">会場の構成</h3>
+    <dl class="layout">
+      {% for l in exhibition.layout %}
+      <div><dt>{{ l.place }}</dt><dd>{{ l.detail }}</dd></div>
+      {% endfor %}
+    </dl>
+    <ul class="photos">
+      {% for p in exhibition.photos %}
+      <li>
+        <figure>
+          {{ square(p.image, p.alt) }}
+          <figcaption>{{ p.caption }}</figcaption>
+        </figure>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  {% if faq %}
+  <section class="section" id="faq" aria-labelledby="faq-title">
+    {{ heading("—", "FAQ", "よくある質問", "faq") }}
+    {% for item in faq %}
+    <details class="faq">
+      <summary>{{ item.q }}</summary>
+      <p>{{ item.a }}</p>
+    </details>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  <section class="section" id="credit" aria-labelledby="credit-title">
+    {{ heading("06", "Credit", "制作", "credit") }}
+    <p class="credit__name">{{ credit.name }}<span lang="en">{{ credit.name_en }}</span></p>
+    {% for a in credit.affiliation %}
+    <p class="credit__aff">{{ a }}</p>
+    {% endfor %}
+  </section>
+</main>
+
+<footer class="footer">
+  <p>お問い合わせ：
+    {% if "@" in contact.email %}<a href="mailto:{{ contact.email }}">{{ contact.email }}</a>{% else %}{{ contact.email }}{% endif %}
+  </p>
+  <p class="footer__sns">
+    {% for s in contact.sns %}
+    {% if s.url %}<a href="{{ s.url }}" target="_blank" rel="noopener">{{ s.label }}</a>{% else %}<span>{{ s.label }}</span>{% endif %}
+    {% endfor %}
+  </p>
+  <p class="footer__copy">&copy; {{ build_year }} {{ credit.name_en }}</p>
+</footer>
+{% endblock %}
